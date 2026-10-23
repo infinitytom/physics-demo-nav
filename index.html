@@ -1,0 +1,407 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>物理演示开源导航</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="收录开源或开放许可的在线物理演示与仿真资源，按高中物理知识点索引。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@600;900&family=Noto+Sans+SC:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: lab-notebook index — graph-paper ground, filter rail on top, resource cards, then a chapter-by-chapter lookup table */
+:root{
+  --bg:#f3f6f8;
+  --paper:#ffffff;
+  --grid:rgba(30,80,120,.07);
+  --ink:#14212b;
+  --muted:#5a6b77;
+  --line:#d5dee5;
+  --accent:#1559a8;
+  --accent-soft:#e3eefa;
+  --open:#1f7a4d; --open-soft:#e2f3ea;
+  --cc:#8a5a00;   --cc-soft:#fbf0d9;
+  --free:#6a4c9c; --free-soft:#eee8f7;
+  --font-display:"Noto Serif SC","Songti SC","STSong",serif;
+  --font-body:"Noto Sans SC","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+  --font-mono:"JetBrains Mono",ui-monospace,"SFMono-Regular",Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0d151c;--paper:#131e27;--grid:rgba(120,190,255,.06);--ink:#e3ecf2;--muted:#93a6b4;--line:#243441;
+  --accent:#6fb3ff;--accent-soft:#16304a;--open:#5fd39a;--open-soft:#143326;--cc:#f0bf5a;--cc-soft:#352a12;--free:#c2a6f2;--free-soft:#2a2140;color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0d151c;--paper:#131e27;--grid:rgba(120,190,255,.06);--ink:#e3ecf2;--muted:#93a6b4;--line:#243441;
+  --accent:#6fb3ff;--accent-soft:#16304a;--open:#5fd39a;--open-soft:#143326;--cc:#f0bf5a;--cc-soft:#352a12;--free:#c2a6f2;--free-soft:#2a2140;color-scheme:dark}
+
+*{box-sizing:border-box}
+body{
+  background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:15px;line-height:1.65;
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:24px 24px;
+}
+.wrap{max-width:1120px;margin:0 auto;padding-block:40px 64px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  display:flex;flex-direction:column;gap:40px}
+a{color:var(--accent)}
+a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* header */
+header{display:grid;grid-template-columns:1fr auto;gap:24px;align-items:end}
+@media (max-width:720px){header{grid-template-columns:1fr}}
+.eyebrow{font-family:var(--font-mono);font-size:12px;letter-spacing:.08em;color:var(--muted);text-transform:uppercase}
+h1{font-family:var(--font-display);font-weight:900;font-size:clamp(30px,5vw,46px);line-height:1.15;margin:6px 0 10px;text-wrap:balance}
+.lede{max-width:40em;color:var(--muted);margin:0}
+.wave{width:220px;max-width:100%;height:auto}
+.wave path{fill:none;stroke:var(--accent);stroke-width:2}
+.wave line{stroke:var(--line);stroke-width:1}
+
+.head-side{display:flex;flex-direction:column;align-items:flex-end;gap:14px}
+@media (max-width:720px){.head-side{align-items:flex-start;flex-direction:column-reverse}}
+.sponsor{font:inherit;font-size:14px;font-weight:500;padding:7px 16px;border-radius:999px;border:1px solid var(--accent);background:var(--paper);color:var(--accent);cursor:pointer}
+.sponsor:hover{background:var(--accent);color:var(--paper)}
+.overlay{position:fixed;inset:0;z-index:20;background:rgba(8,16,24,.55);display:flex;align-items:center;justify-content:center;
+  padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.sheet{position:relative;background:var(--paper);color:var(--ink);border:1px solid var(--line);border-radius:12px;padding:24px;max-width:340px;width:100%;text-align:center;display:flex;flex-direction:column;gap:10px;align-items:center}
+.sheet h3{margin:0;font-family:var(--font-display);font-size:20px}
+.sheet p{margin:0;font-size:14px;color:var(--muted)}
+.sheet img{width:240px;max-width:100%;height:auto;border-radius:8px;background:#fff}
+.sheet small{color:var(--muted);font-size:12px}
+.close{position:absolute;top:8px;right:10px;font-size:22px;line-height:1;border:0;background:none;color:var(--muted);cursor:pointer;padding:4px 8px}
+
+/* legend */
+.legend{display:flex;flex-wrap:wrap;gap:10px 22px;font-size:13px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+
+.badge{font-family:var(--font-mono);font-size:11.5px;font-weight:600;padding:2px 8px;border-radius:4px;white-space:nowrap;letter-spacing:.02em}
+.t-open{color:var(--open);background:var(--open-soft)}
+.t-cc{color:var(--cc);background:var(--cc-soft)}
+.t-free{color:var(--free);background:var(--free-soft)}
+
+/* controls */
+.controls{display:flex;flex-direction:column;gap:12px;background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:16px}
+.search{width:100%;font:inherit;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.row-label{font-size:12px;color:var(--muted);min-width:3.5em}
+.chip{font:inherit;font-size:13px;padding:4px 12px;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--ink);cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--paper)}
+.count{font-family:var(--font-mono);font-size:12px;color:var(--muted);margin-left:auto}
+
+/* cards */
+h2{font-family:var(--font-display);font-weight:600;font-size:24px;margin:0 0 4px;text-wrap:balance}
+.section-note{color:var(--muted);margin:0 0 18px;max-width:46em;font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:16px 18px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.card h3{margin:0;font-size:17px;line-height:1.35}
+.card h3 a{color:var(--ink);text-decoration:none}
+.card h3 a:hover{color:var(--accent);text-decoration:underline}
+.card .en{display:block;font-family:var(--font-mono);font-size:11.5px;color:var(--muted);font-weight:400;margin-top:2px}
+.card p{margin:0;font-size:14px}
+.meta{display:grid;grid-template-columns:auto 1fr;gap:3px 12px;font-size:12.5px;color:var(--muted)}
+.meta dt{white-space:nowrap}
+.meta dd{margin:0;color:var(--ink);min-width:0;overflow-wrap:anywhere}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:auto}
+.kind{font-size:12px;color:var(--muted);font-family:var(--font-mono)}
+.tag{font-size:12px;padding:1px 8px;border-radius:4px;background:var(--accent-soft);color:var(--accent)}
+.empty{padding:24px;text-align:center;color:var(--muted);background:var(--paper);border:1px dashed var(--line);border-radius:10px}
+
+/* chapter table */
+.book{background:var(--paper);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.book + .book{margin-top:14px}
+.book h3{margin:0;padding:10px 16px;font-size:15px;border-bottom:1px solid var(--line);display:flex;gap:10px;align-items:baseline}
+.book h3 small{font-family:var(--font-mono);font-weight:400;font-size:11.5px;color:var(--muted)}
+.table-scroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:14px;min-width:560px}
+td{padding:9px 16px;border-top:1px solid var(--line);vertical-align:top}
+tr:first-child td{border-top:0}
+td.k{width:11em;font-weight:500}
+td.src{width:7em;font-family:var(--font-mono);font-size:12px;color:var(--muted)}
+td a{text-decoration:none}
+td a:hover{text-decoration:underline}
+
+/* notes */
+.notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.note{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:16px 18px;font-size:14px}
+.note h3{margin:0 0 6px;font-size:15px}
+.note p{margin:0 0 8px}
+.note p:last-child{margin:0}
+footer{font-size:12.5px;color:var(--muted);border-top:1px solid var(--line);padding-top:16px}
+@media (prefers-reduced-motion:no-preference){.card{transition:border-color .15s}.card:hover{border-color:var(--accent)}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <div class="eyebrow">Open Physics Demos · 高中物理</div>
+      <h1>物理演示开源导航</h1>
+      <p class="lede">收录可以直接在浏览器里打开的物理仿真、实验工具、开放教材、视频课和参考资料，优先开源代码和开放许可的资源。每条都标明许可、语言和是否能离线，方便课前挑选、课上投屏。</p>
+    </div>
+    <div class="head-side">
+    <button class="sponsor" id="sponsorBtn" type="button" aria-haspopup="dialog">♥ 赞赏作者</button>
+    <svg class="wave" viewBox="0 0 220 80" aria-hidden="true">
+      <line x1="0" y1="40" x2="220" y2="40"/>
+      <path d="M0 40 C 13.75 8, 27.5 8, 41.25 40 S 68.75 72, 82.5 40 S 110 14, 123.75 40 S 151.25 62, 165 40 S 192.5 22, 206.25 40 L 220 40"/>
+    </svg>
+    </div>
+  </header>
+
+  <div class="legend" aria-label="许可分级说明">
+    <span><b class="badge t-open">开源</b>代码公开，有 OSI 类开源许可（GPL / MIT / Apache 等）</span>
+    <span><b class="badge t-cc">开放内容</b>内容以 CC 等许可开放，代码不一定公开</span>
+    <span><b class="badge t-free">免费使用</b>可免费教学使用，但不是开源</span>
+  </div>
+
+  <section aria-labelledby="res-h">
+    <h2 id="res-h">资源平台</h2>
+    <p class="section-note">按资源类型、知识领域和许可筛选。点名称直接打开。</p>
+    <div class="controls">
+      <input id="q" class="search" type="search" placeholder="搜索：如 电路、波、Kepler、离线…" aria-label="搜索资源">
+      <div class="row" id="kindRow"><span class="row-label">类型</span></div>
+      <div class="row" id="topicRow"><span class="row-label">领域</span></div>
+      <div class="row" id="tierRow"><span class="row-label">许可</span><span class="count" id="count"></span></div>
+    </div>
+    <div style="height:14px"></div>
+    <div class="grid" id="grid"></div>
+    <div class="empty" id="empty" hidden>没有符合条件的资源，试试减少筛选条件。</div>
+  </section>
+
+  <section aria-labelledby="ch-h">
+    <h2 id="ch-h">按教材章节直达</h2>
+    <p class="section-note">按人教版 2019 新教材六册整理，每个知识点给出一到两个可直接投屏的演示。PhET 链接默认打开简体中文页面。</p>
+    <div id="books"></div>
+  </section>
+
+  <section aria-labelledby="note-h">
+    <h2 id="note-h">使用说明</h2>
+    <div class="notes">
+      <div class="note">
+        <h3>PhET 许可在 2026 年有变化</h3>
+        <p>2026-03-29 之前发布的版本是 CC BY 4.0，商用也允许。之后发布的版本，学生和教师课堂、作业、项目等非商业用途仍然免费，商业用途（含收费课程、带货视频等）需要另购授权。</p>
+        <p>仿真源码仍在 GitHub 公开（GPLv3 / MIT）。</p>
+      </div>
+      <div class="note">
+        <h3>上课前先试开</h3>
+        <p>除国家中小学智慧教育平台外，本页收录的站点均在境外服务器，国内访问速度未实测。重要课时建议提前下载离线版：PhET、Walter Fendt、myPhysicsLab、Falstad 都提供离线包。</p>
+      </div>
+      <div class="note">
+        <h3>引用和署名</h3>
+        <p>CC BY 类资源在课件、公众号、视频中使用时需要署名作者和来源；CC BY-NC 类资源不能用于商业用途。</p>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    信息核对日期 2026-10-23。许可条款以各资源官网为准；发现失效链接或想推荐新资源，可以在仓库提 issue。
+  </footer>
+</div>
+
+<div class="overlay" id="sponsorDlg" role="dialog" aria-modal="true" aria-labelledby="spH" hidden>
+  <div class="sheet">
+    <button class="close" id="sponsorClose" type="button" aria-label="关闭">×</button>
+    <h3 id="spH">请作者喝杯咖啡</h3>
+    <p>本站免费、无广告，持续人工核对链接和许可。觉得有用的话，欢迎用支付宝扫码支持。</p>
+    <img src="assets/alipay.png" alt="支付宝收款码（infinitytom）" width="240" height="272">
+    <small>赞赏完全自愿，不影响任何功能。</small>
+  </div>
+</div>
+
+<script>
+const TIERS={open:{label:"开源",cls:"t-open"},cc:{label:"开放内容",cls:"t-cc"},free:{label:"免费使用",cls:"t-free"}};
+const TOPICS=["力学","振动与波","电磁学","光学","热学","近代物理","综合"];
+const KINDS=["仿真演示","实验工具","建模编程","教材课程","视频","参考资料","图片素材"];
+
+const RESOURCES=[
+ {name:"PhET 互动仿真",kind:"仿真演示",en:"PhET Interactive Simulations · CU Boulder",url:"https://phet.colorado.edu/zh_CN/",tier:"open",
+  license:"源码 GPLv3 / MIT；2026-03-29 前版本 CC BY 4.0，之后版本非商业免费",lang:"简体中文（官方中文项目组维护）",offline:"有（官方 App / 离线包）",
+  desc:"覆盖面最广的教学仿真库，界面统一，适合学生自己动手探究。高中力学、电路、光学、波动都有成熟作品。",
+  topics:["力学","振动与波","电磁学","光学","热学","近代物理"]},
+ {name:"Falstad 仿真合集",kind:"仿真演示",en:"Paul Falstad · falstad.com",url:"https://www.falstad.com/",tier:"open",
+  license:"电路模拟器 CircuitJS 为 GPLv2，水波槽等作品在 GitHub 公开",lang:"英文（电路模拟器有中文界面）",offline:"有（官网提供离线版）",
+  desc:"以电路模拟器和二维水波槽出名。电路能实时显示电流流动和电压颜色，水波槽可做双缝干涉、衍射、多普勒效应。",
+  topics:["电磁学","振动与波","光学"]},
+ {name:"myPhysicsLab",kind:"仿真演示",en:"Erik Neumann",url:"https://www.myphysicslab.com/",tier:"open",
+  license:"Apache 2.0",lang:"英文、德文",offline:"有（可下载离线版）",
+  desc:"约 50 个力学仿真：弹簧、单摆、双摆、碰撞、刚体。每个页面附带运动方程推导，适合竞赛和拓展课。",
+  topics:["力学","振动与波"]},
+ {name:"Open Source Physics @ Singapore",kind:"仿真演示",en:"新加坡教育部 · Wee Loo Kang 等",url:"https://sg.iwant2study.org/ospsg/",tier:"cc",
+  license:"CC BY-SA 4.0（新加坡）",lang:"英文",offline:"多数作品可下载",
+  desc:"新加坡教师团队用 EJS 制作的大量 HTML5 仿真，按中学课程组织，题材贴近中学物理教学。",
+  topics:["力学","振动与波","电磁学","光学","热学"]},
+ {name:"ComPADRE OSP 资源库",kind:"仿真演示",en:"Open Source Physics Collection · AAPT",url:"https://www.compadre.org/osp/",tier:"open",
+  license:"多为 GPL 或 CC，以各条目为准",lang:"英文",offline:"可下载源文件",
+  desc:"Open Source Physics 项目的总资源库，数百个 EJS JavaScript 仿真和 Tracker 视频实验，可在网页版 EJS 中直接改模型。",
+  topics:["力学","振动与波","电磁学","光学","热学","近代物理"]},
+ {name:"Physlet Physics 第三版",kind:"仿真演示",en:"Wolfgang Christian, Mario Belloni",url:"https://www.compadre.org/Physlets/",tier:"cc",
+  license:"随 ComPADRE 发布，以各章节说明为准",lang:"英文",offline:"—",
+  desc:"配套概念题的交互仿真教材，按力学、流体、波、光、电路分册，很多仿真带有\"预测-观察-解释\"式的问题。",
+  topics:["力学","振动与波","电磁学","光学"]},
+ {name:"Walter Fendt 物理小程序",kind:"仿真演示",en:"Apps on Physics",url:"https://www.walter-fendt.de/html5/phen/",tier:"cc",
+  license:"CC BY-NC-SA（非商业）",lang:"英文、德文等 20 种（无中文）",offline:"有（整站打包下载）",
+  desc:"57 个短小精悍的 HTML5 演示：匀加速运动、力的合成分解、开普勒定律、受迫振动、驻波、光电效应、玻尔模型等，和高中教材知识点对得很齐。",
+  topics:["力学","振动与波","电磁学","光学","热学","近代物理"]},
+ {name:"Tracker 视频分析",kind:"实验工具",en:"Tracker Video Analysis and Modeling Tool",url:"https://opensourcephysics.github.io/tracker-website/",tier:"open",
+  license:"GPLv3",lang:"多语言（含中文）",offline:"桌面版；另有网页版 Tracker Online",
+  desc:"把手机拍的运动视频逐帧打点，自动画出 x-t、v-t 图并拟合。适合做平抛、自由落体、单摆等真实实验的数据分析。",
+  topics:["力学"]},
+ {name:"phyphox 手机物理实验",kind:"实验工具",en:"RWTH Aachen University",url:"https://phyphox.org/",tier:"open",
+  license:"GPLv3",lang:"多语言（含中文）",offline:"手机 App，无需联网",
+  desc:"调用手机加速度计、陀螺仪、气压计、麦克风等传感器做实验。可测向心加速度、声速、电梯加速度，数据能投屏到电脑。",
+  topics:["力学","振动与波"]},
+ {name:"GlowScript VPython",kind:"建模编程",en:"glowscript.org",url:"https://www.glowscript.org/",tier:"open",
+  license:"开源（GitHub 公开）",lang:"英文",offline:"可装 VPython 本地运行",
+  desc:"在浏览器里用几行 Python 写出可旋转的 3D 动画。适合物理社团、信息技术融合课做数值模拟。",
+  topics:["力学","电磁学"]},
+ {name:"NetLogo Web",kind:"建模编程",en:"Northwestern University",url:"https://www.netlogoweb.org/",tier:"open",
+  license:"软件 GPL；模型库多为 CC BY-NC-SA",lang:"英文",offline:"桌面版",
+  desc:"基于大量粒子的建模工具，模型库里的气体分子运动、扩散等模型适合热学微观解释。",
+  topics:["热学"]},
+ {name:"台湾师大虚拟物理实验室",kind:"仿真演示",en:"NTNU Virtual Physics Laboratory · 黄福坤",url:"http://www.phy.ntnu.edu.tw/ntnujava/",tier:"cc",
+  license:"多数作品 CC BY",lang:"繁体中文",offline:"部分可下载",
+  desc:"华语圈最早的 EJS 仿真社区，作品数量多、讨论区有中文解说。部分早期作品是 Java 版，现代浏览器打不开。",
+  topics:["力学","振动与波","电磁学","光学"]},
+ {name:"oPhysics",kind:"仿真演示",en:"Tom Walsh",url:"https://ophysics.com/",tier:"free",
+  license:"非营利教育用途可自由使用",lang:"英文",offline:"—",
+  desc:"退休高中物理教师用 GeoGebra 做的仿真，界面简洁、无广告，覆盖运动学、力、波、光、电磁和近代物理，课堂演示很顺手。",
+  topics:["力学","振动与波","电磁学","光学","近代物理"]},
+ {name:"GeoGebra 物理资源",kind:"仿真演示",en:"GeoGebra Materials",url:"https://www.geogebra.org/materials",tier:"free",
+  license:"非商业用途免费",lang:"简体中文界面",offline:"可装客户端",
+  desc:"全球教师上传的动态作图资源，搜\"物理\"能找到大量中文作品；也可以自己做受力分析图、运动轨迹图。",
+  topics:["力学","振动与波","光学","电磁学"]},
+ {name:"Andrew Duffy HTML5 仿真",kind:"仿真演示",en:"Boston University",url:"http://physics.bu.edu/~duffy/classroom.html",tier:"free",
+  license:"免费使用，未声明开源许可",lang:"英文",offline:"—",
+  desc:"200 多个大学物理入门仿真，按章节排列，覆盖力学到电磁学。",
+  topics:["力学","振动与波","电磁学","光学"]},
+ {name:"国家中小学智慧教育平台",kind:"视频",en:"教育部 · basic.smartedu.cn",url:"https://basic.smartedu.cn/",tier:"free",
+  license:"官方平台，免费使用，版权归原作者",lang:"简体中文",offline:"有 App（智慧中小学）",
+  desc:"教育部官方平台，有按人教版教材同步的高中物理课程视频、实验教学视频和电子课本。国内访问最稳定。",
+  topics:["综合"]},
+ {name:"OpenStax 物理教材",en:"OpenStax · Rice University",url:"https://openstax.org/subjects/science",kind:"教材课程",tier:"cc",
+  license:"CC BY 4.0",lang:"英文",offline:"可下载 PDF",
+  desc:"《College Physics》《University Physics》等完整开放教材，插图和习题都能在署名后自由改编进课件。",
+  topics:["综合"]},
+ {name:"LibreTexts 物理",en:"Physics LibreTexts",url:"https://phys.libretexts.org/",kind:"教材课程",tier:"cc",
+  license:"多为 CC BY-NC-SA，以各书为准",lang:"英文",offline:"可导出 PDF",
+  desc:"汇集上百本开放物理教材，可按主题检索单个小节，适合查某个概念的另一种讲法。",
+  topics:["综合"]},
+ {name:"MIT OpenCourseWare 物理",en:"MIT OCW",url:"https://ocw.mit.edu/search/?d=Physics",kind:"教材课程",tier:"cc",
+  license:"CC BY-NC-SA 4.0",lang:"英文（部分课程有中文字幕）",offline:"可下载课程包",
+  desc:"MIT 物理课程的讲义、习题、考试和录像，8.01 经典力学、8.02 电磁学是竞赛和拓展课常用参考。",
+  topics:["力学","电磁学","综合"]},
+ {name:"可汗学院 物理",en:"Khan Academy Physics",url:"https://www.khanacademy.org/science/physics",kind:"视频",tier:"free",
+  license:"非营利平台，免费使用",lang:"英文（部分有中文字幕）",offline:"—",
+  desc:"短视频加配套练习，从运动学讲到近代物理，节奏适合学生课后自学。",
+  topics:["综合"]},
+ {name:"费曼物理学讲义 在线版",en:"The Feynman Lectures on Physics · Caltech",url:"https://www.feynmanlectures.caltech.edu/",kind:"参考资料",tier:"free",
+  license:"免费在线阅读，版权保留",lang:"英文",offline:"—",
+  desc:"加州理工官方的三卷全文在线版，含原版插图和课堂录音。备课时查物理图像的经典来源。",
+  topics:["综合"]},
+ {name:"HyperPhysics",en:"Georgia State University",url:"http://hyperphysics.phy-astr.gsu.edu/hbase/hframe.html",kind:"参考资料",tier:"free",
+  license:"免费使用，版权保留",lang:"英文",offline:"—",
+  desc:"概念地图式的物理百科，每个概念一页，带公式计算器，适合快速查公式和概念关系。",
+  topics:["综合"]},
+ {name:"NIST 物理常数",en:"CODATA Fundamental Physical Constants",url:"https://physics.nist.gov/cuu/Constants/",kind:"参考资料",tier:"cc",
+  license:"美国政府数据，公有领域",lang:"英文",offline:"可下载数据表",
+  desc:"基本物理常数的权威推荐值和不确定度。出题、讲单位制时可以引用最新数据。",
+  topics:["综合"]},
+ {name:"Wolfram 演示项目",en:"Wolfram Demonstrations Project",url:"https://demonstrations.wolfram.com/topic.html?topic=physics",kind:"仿真演示",tier:"cc",
+  license:"CC BY-NC-SA",lang:"英文",offline:"需 Wolfram Player",
+  desc:"上万个可调参数的交互演示，物理分类下有大量振动、场、光学的可视化，可在浏览器云端运行。",
+  topics:["力学","振动与波","电磁学","光学"]},
+ {name:"Wikimedia Commons 物理图库",en:"Wikimedia Commons · Physics",url:"https://commons.wikimedia.org/wiki/Category:Physics",kind:"图片素材",tier:"cc",
+  license:"每张图单独标注（多为 CC BY-SA 或公有领域）",lang:"多语言",offline:"可下载原图",
+  desc:"维基百科使用的物理示意图、实验照片、动图和 SVG 矢量图，做课件插图时比随手搜图版权清楚。",
+  topics:["综合"]}
+];
+
+const P=s=>`https://phet.colorado.edu/zh_CN/simulations/${s}`;
+const BOOKS=[
+ {book:"必修第一册",sub:"运动 · 相互作用 · 牛顿运动定律",rows:[
+  ["匀变速直线运动",[["Fendt：Motion with Constant Acceleration","https://www.walter-fendt.de/html5/phen/"],["Tracker：拍视频测 v-t 图","https://opensourcephysics.github.io/tracker-website/"]],"Fendt / OSP"],
+  ["力的合成与分解",[["Fendt：Resultant of Forces / Resolution of a Force","https://www.walter-fendt.de/html5/phen/"]],"Fendt"],
+  ["牛顿第二定律",[["力与运动：基础","forces-and-motion-basics"]],"PhET"],
+ ]},
+ {book:"必修第二册",sub:"抛体 · 圆周 · 万有引力 · 机械能",rows:[
+  ["平抛与斜抛",[["抛射运动","projectile-motion"]],"PhET"],
+  ["万有引力与天体运动",[["开普勒定律","keplers-laws"],["引力与轨道","gravity-and-orbits"]],"PhET"],
+  ["机械能守恒",[["能量滑板公园","energy-skate-park"]],"PhET"],
+ ]},
+ {book:"必修第三册",sub:"静电场 · 电路 · 电磁感应初步",rows:[
+  ["电场线与电势",[["电荷与场","charges-and-fields"]],"PhET"],
+  ["电容器",[["电容器实验室：基础","capacitor-lab-basics"]],"PhET"],
+  ["闭合电路",[["电路搭建套件：直流","circuit-construction-kit-dc"],["CircuitJS 电路模拟器","https://www.falstad.com/circuit/circuitjs.html"]],"PhET / Falstad"],
+ ]},
+ {book:"选择性必修第一册",sub:"动量 · 机械振动 · 机械波 · 光",rows:[
+  ["碰撞与动量守恒",[["碰撞实验室","collision-lab"]],"PhET"],
+  ["简谐运动",[["单摆实验室","pendulum-lab"],["质量与弹簧","masses-and-springs"]],"PhET"],
+  ["机械波",[["绳上的波","wave-on-a-string"]],"PhET"],
+  ["干涉与衍射",[["波的干涉","wave-interference"],["Falstad 水波槽","https://www.falstad.com/ripple/"]],"PhET / Falstad"],
+  ["光的折射与全反射",[["光的折射","bending-light"]],"PhET"],
+ ]},
+ {book:"选择性必修第二册",sub:"磁场 · 电磁感应 · 交变电流",rows:[
+  ["电磁感应、楞次定律",[["法拉第电磁实验室","faradays-electromagnetic-lab"]],"PhET"],
+  ["交变电流与 LC 电路",[["电路搭建套件：交流","circuit-construction-kit-ac"],["CircuitJS（内置 LC 振荡示例）","https://www.falstad.com/circuit/circuitjs.html"]],"PhET / Falstad"],
+ ]},
+ {book:"选择性必修第三册",sub:"分子动理论 · 气体 · 原子与原子核",rows:[
+  ["气体实验定律",[["气体性质","gas-properties"]],"PhET"],
+  ["光电效应",[["光电效应（旧版程序）","photoelectric"]],"PhET"],
+  ["原子核式结构",[["卢瑟福散射","rutherford-scattering"]],"PhET"],
+ ]},
+ {book:"拓展",sub:"几何光学 · 课外",rows:[
+  ["透镜成像",[["几何光学","geometric-optics"]],"PhET"],
+ ]}
+];
+
+const state={q:"",topic:null,tier:null,kind:null};
+let saved={};try{saved=JSON.parse(localStorage.getItem("pdn-filter")||"{}")}catch(e){}
+if(saved.topic&&TOPICS.includes(saved.topic))state.topic=saved.topic;
+if(saved.tier&&TIERS[saved.tier])state.tier=saved.tier;
+if(saved.kind&&KINDS.includes(saved.kind))state.kind=saved.kind;
+
+function chip(label,active,onClick){const b=document.createElement("button");b.className="chip";b.type="button";b.textContent=label;b.setAttribute("aria-pressed",active?"true":"false");b.addEventListener("click",onClick);return b}
+function renderChips(){
+  const kr=document.getElementById("kindRow");kr.querySelectorAll(".chip").forEach(n=>n.remove());
+  kr.append(chip("全部",!state.kind,()=>{state.kind=null;update()}));
+  KINDS.forEach(t=>kr.append(chip(t,state.kind===t,()=>{state.kind=state.kind===t?null:t;update()})));
+  const tr=document.getElementById("topicRow");tr.querySelectorAll(".chip").forEach(n=>n.remove());
+  tr.append(chip("全部",!state.topic,()=>{state.topic=null;update()}));
+  TOPICS.forEach(t=>tr.append(chip(t,state.topic===t,()=>{state.topic=state.topic===t?null:t;update()})));
+  const rr=document.getElementById("tierRow"),cnt=document.getElementById("count");rr.querySelectorAll(".chip").forEach(n=>n.remove());
+  rr.insertBefore(chip("全部",!state.tier,()=>{state.tier=null;update()}),cnt);
+  Object.entries(TIERS).forEach(([k,v])=>rr.insertBefore(chip(v.label,state.tier===k,()=>{state.tier=state.tier===k?null:k;update()}),cnt));
+}
+function esc(s){return s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
+function renderGrid(){
+  const q=state.q.trim().toLowerCase();
+  const list=RESOURCES.filter(r=>(!state.kind||r.kind===state.kind)&&(!state.topic||r.topics.includes(state.topic))&&(!state.tier||r.tier===state.tier)&&
+    (!q||[r.name,r.en,r.kind,r.desc,r.license,r.lang,r.offline,r.topics.join(" ")].join(" ").toLowerCase().includes(q)));
+  const g=document.getElementById("grid");
+  g.innerHTML=list.map(r=>`<article class="card">
+    <div class="card-top"><h3><a href="${r.url}" target="_blank" rel="noopener">${esc(r.name)}<span class="en">${esc(r.en)}</span></a></h3>
+    <span class="badge ${TIERS[r.tier].cls}">${TIERS[r.tier].label}</span></div>
+    <p>${esc(r.desc)}</p>
+    <dl class="meta"><dt>类型</dt><dd>${r.kind}</dd><dt>许可</dt><dd>${esc(r.license)}</dd><dt>语言</dt><dd>${esc(r.lang)}</dd><dt>离线</dt><dd>${esc(r.offline)}</dd></dl>
+    <div class="tags">${r.topics.map(t=>`<span class="tag">${t}</span>`).join("")}</div></article>`).join("");
+  document.getElementById("empty").hidden=list.length>0;
+  document.getElementById("count").textContent=`${list.length} / ${RESOURCES.length} 项`;
+}
+function renderBooks(){
+  document.getElementById("books").innerHTML=BOOKS.map(b=>`<div class="book"><h3>${b.book}<small>${b.sub}</small></h3>
+   <div class="table-scroll"><table><tbody>${b.rows.map(([k,links,src])=>`<tr><td class="k">${k}</td><td>${
+     links.map(([t,u])=>`<a href="${u.startsWith("http")?u:P(u)}" target="_blank" rel="noopener">${esc(t)}</a>`).join("<br>")
+   }</td><td class="src">${src}</td></tr>`).join("")}</tbody></table></div></div>`).join("");
+}
+function update(){try{localStorage.setItem("pdn-filter",JSON.stringify({topic:state.topic,tier:state.tier,kind:state.kind}))}catch(e){}renderChips();renderGrid()}
+document.getElementById("q").addEventListener("input",e=>{state.q=e.target.value;renderGrid()});
+renderChips();renderGrid();renderBooks();
+const dlg=document.getElementById("sponsorDlg"),btn=document.getElementById("sponsorBtn");
+function openDlg(){dlg.hidden=false;document.getElementById("sponsorClose").focus()}
+function closeDlg(){dlg.hidden=true;btn.focus()}
+btn.addEventListener("click",openDlg);
+document.getElementById("sponsorClose").addEventListener("click",closeDlg);
+dlg.addEventListener("click",e=>{if(e.target===dlg)closeDlg()});
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!dlg.hidden)closeDlg()});
+</script>
+</body>
+</html>
